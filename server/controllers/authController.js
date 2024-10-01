@@ -19,11 +19,11 @@ export const signup = async (req, res) => {
         //hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        const verificationToken = Math.floor(100000 + Math.random() * 900000);
+        // const verificationToken = Math.floor(100000 + Math.random() * 900000); <=== if want to create advance auth for email
         //https://avatar-placeholder.iran.liara.run/
         const boyProfilePic = `https://avatar.iran.liara.run/public/boy?username=${username}`
         const girlProfilePic = `https://avatar.iran.liara.run/public/girl?username=${username}`
-        const girlPsrofilePic = `https://avatar.iran.liara.run/username?username=${fullname}`
+        // const girlPsrofilePic = `https://avatar.iran.liara.run/username?username=${fullname}`
 
         const newUser = new User({
             fullname,
@@ -31,7 +31,7 @@ export const signup = async (req, res) => {
             password: hashedPassword,
             gender,
             verificationToken,
-            profilePic: girlPsrofilePic
+            profilePic: gender === 'male' ? boyProfilePic : girlProfilePic
         })
 
         if (newUser) {
@@ -43,7 +43,7 @@ export const signup = async (req, res) => {
                 message: 'User registered successfully',
                 user: {
                     ...newUser._doc,
-                    password:undefined
+                    password: undefined
                 }
             })
         }
@@ -68,13 +68,14 @@ export const login = async (req, res) => {
         if (!user || !isValidPassword) {
             return res.status(400).json({ error: 'invalid username or password' })
         }
-
+        user.ifVerified = true
         generatetokenandsetcookie(user._id, res);
-
+        user.save()
         return res.status(201).json({
             _id: user._id,
             fullname: user.fullname,
             username: user.username,
+            isverified: user.ifVerified,
             profilePic: user.profilePic,
         })
     } catch (error) {

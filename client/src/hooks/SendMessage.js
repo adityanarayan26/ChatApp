@@ -24,7 +24,6 @@ const SendMessage = () => {
 
             const data = resp.data
             setmessages([...messages, data])
-            toast.success('sended')
      
 
         } catch (error) {
